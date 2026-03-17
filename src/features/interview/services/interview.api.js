@@ -1,8 +1,16 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "https://interview-ai-3gv5.onrender.com",
-    withCredentials: true,
+    baseURL: "https://interview-ai-3gv5.onrender.com"
+})
+
+// Add token to requests
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token')
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
 })
 
 
