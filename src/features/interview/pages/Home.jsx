@@ -9,6 +9,7 @@ const Home = () => {
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
     const [ resumeFileName, setResumeFileName ] = useState(null)
+    const [ error, setError ] = useState(null)
     const resumeInputRef = useRef()
 
     const navigate = useNavigate()
@@ -21,15 +22,52 @@ const Home = () => {
     }
 
     const handleGenerateReport = async () => {
+        setError(null)
+        
+        if (!jobDescription.trim()) {
+            setError("Please enter a job description")
+            return
+        }
+        
         const resumeFile = resumeInputRef.current.files[ 0 ]
-        const data = await generateReport({ jobDescription, selfDescription, resumeFile })
-        navigate(`/interview/${data._id}`)
+        
+        if (!resumeFile && !selfDescription.trim()) {
+            setError("Please upload a resume or enter a self description")
+            return
+        }
+        
+        try {
+            const data = await generateReport({ jobDescription, selfDescription, resumeFile })
+            if (data && data._id) {
+                navigate(`/interview/${data._id}`)
+            } else {
+                setError("Failed to generate report. Please try again.")
+            }
+        } catch (err) {
+            console.error("Error generating report:", err)
+            setError(err.response?.data?.message || "Failed to generate report. Please check your connection and try again.")
+        }
     }
 
     if (loading) {
         return (
             <main className='loading-screen'>
                 <h1>Loading your interview plan...</h1>
+            </main>
+        )
+    }
+
+    if (error) {
+        return (
+            <main className='loading-screen'>
+                <h1>Error</h1>
+                <p style={{color: '#ef4444', marginTop: '1rem'}}>{error}</p>
+                <button 
+                    onClick={() => setError(null)} 
+                    style={{marginTop: '1rem', padding: '0.5rem 1rem', cursor: 'pointer'}}
+                >
+                    Try Again
+                </button>
             </main>
         )
     }
